@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/styles.css">
+    <title>Actividad 1: Últimos Terremotos Registrados</title>
+    <!-- Agregar enlace a Leaflet para el mapa -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+</head>
+<body>
+    <h2>Actividad 1: Últimos Terremotos Registrados</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Lugar</th>
+                <th>Magnitud</th>
+                <th>Fecha y Hora</th>
+                <th>Mapa</th>
+            </tr>
+        </thead>
+        <tbody id="datos-terremotos">
+        </tbody>
+    </table>
+
+    <div id="map"></div>
+
+    <script>
+        const mapa = L.map('map').setView([20, 0], 2); // Coordenadas iniciales y nivel de zoom
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(mapa);
+
+        async function obtenerDatosTerremotos() {
+            try {
+                const respuesta = await fetch('https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&limit=10');
+                const datos = await respuesta.json();
+                const terremotos = datos.features;
+
+                const cuerpoTabla = document.getElementById('datos-terremotos');
+                terremotos.forEach(terremoto => {
+                    const { place, mag, time, url } = terremoto.properties;
+                    const [longitud, latitud] = terremoto.geometry.coordinates; // Coordenadas del terremoto
+                    const fecha = new Date(time).toLocaleString();
+
+                    L.marker([latitud, longitud]).addTo(mapa)
+                        .bindPopup(`<strong>${place}</strong><br>Magnitud: ${mag.toFixed(1)}<br>${fecha}`);
+
+                    const fila = `
+                        <tr>
+                            <td>${place}</td>
+                            <td>${mag.toFixed(1)}</td>
+                            <td>${fecha}</td>
+                            <td><a href="https://www.google.com/maps?q=${latitud},${longitud}" target="_blank">Ver Mapa</a></td>
+                        </tr>
+                    `;
+                    cuerpoTabla.insertAdjacentHTML('beforeend', fila);
+                });
+            } catch (error) {
+                console.error('Error al obtener los datos de los terremotos:', error);
+                document.getElementById('datos-terremotos').innerHTML = '<tr><td colspan="4">Error al cargar los datos</td></tr>';
+            }
+        }
+
+        obtenerDatosTerremotos();
+    </script>
+    <ul>
+        <li>Najera Lopez Saul Ivan</li>
+        <li>Garcia Mendez Angel Saul</li>
+        <li>Gabriel Alejandro Alvarez Rangel</li>
+    </ul>
+</body>
+</html>
