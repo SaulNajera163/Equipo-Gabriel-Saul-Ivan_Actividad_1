@@ -21,14 +21,17 @@
             </tr>
         </thead>
         <tbody id="datos-terremotos">
+            <tr><td colspan="4" id="loading">Cargando datos...</td></tr>
         </tbody>
     </table>
 
     <div id="map"></div>
 
     <script>
-        const mapa = L.map('map').setView([20, 0], 2); // Coordenadas iniciales y nivel de zoom
+        // Inicialización del mapa con control de zoom
+        const mapa = L.map('map', { zoomControl: true }).setView([20, 0], 2);
 
+        // Cargar capa de mapa con OpenStreetMap
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors'
         }).addTo(mapa);
@@ -40,14 +43,18 @@
                 const terremotos = datos.features;
 
                 const cuerpoTabla = document.getElementById('datos-terremotos');
+                cuerpoTabla.innerHTML = ''; // Limpiar datos de carga
+
                 terremotos.forEach(terremoto => {
                     const { place, mag, time, url } = terremoto.properties;
-                    const [longitud, latitud] = terremoto.geometry.coordinates; // Coordenadas del terremoto
+                    const [longitud, latitud] = terremoto.geometry.coordinates;
                     const fecha = new Date(time).toLocaleString();
 
-                    L.marker([latitud, longitud]).addTo(mapa)
-                        .bindPopup(`<strong>${place}</strong><br>Magnitud: ${mag.toFixed(1)}<br>${fecha}`);
+                    // Añadir marcador al mapa con popup
+                    const marcador = L.marker([latitud, longitud], { title: place }).addTo(mapa);
+                    marcador.bindPopup(`<strong>${place}</strong><br>Magnitud: ${mag.toFixed(1)}<br>${fecha}`);
 
+                    // Añadir fila a la tabla
                     const fila = `
                         <tr>
                             <td>${place}</td>
@@ -60,16 +67,19 @@
                 });
             } catch (error) {
                 console.error('Error al obtener los datos de los terremotos:', error);
-                document.getElementById('datos-terremotos').innerHTML = '<tr><td colspan="4">Error al cargar los datos</td></tr>';
+                document.getElementById('datos-terremotos').innerHTML = '<tr><td colspan="4">Error al cargar los datos de los terremotos. Intenta nuevamente más tarde.</td></tr>';
             }
         }
 
         obtenerDatosTerremotos();
     </script>
-    <ul>
-        <li>Najera Lopez Saul Ivan</li>
-        <li>Garcia Mendez Angel Saul</li>
-        <li>Gabriel Alejandro Alvarez Rangel</li>
-    </ul>
+
+    <footer>
+        <ul>
+            <li>Najera Lopez Saul Ivan</li>
+            <li>Garcia Mendez Angel Saul</li>
+            <li>Gabriel Alejandro Alvarez Rangel</li>
+        </ul>
+    </footer>
 </body>
 </html>
